@@ -2,6 +2,7 @@ from dis import dis
 from math import dist
 import numpy as np
 import os
+import csv
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
@@ -33,15 +34,17 @@ import time
 # =============================================================================
 #  FUNCTIONS                    
 # =============================================================================
-def write_file(data, path):
-    data.to_csv("{}.csv".format(path))
 
 def read_file(filename):
-    df = pd.read_csv(filename)
-    if "data.csv" in filename:
-        df = df.drop('temperature',  axis=1)
-        df = df.drop('cf_pattern',  axis=1)
-    return df
+    # with open(filename, newline = '') as file:
+    #     df = csv.reader(file, quoting = csv.QUOTE_NONNUMERIC)
+    df = pd.read_csv(filename, index_col=0)
+    lookup = pd.DataFrame()
+    lookup["temperature"] = df["temperature"]
+    lookup["cf_pattern"] = df["cf_pattern"]
+    df = df.drop('temperature',  axis=1)
+    df = df.drop('cf_pattern',  axis=1)
+    return lookup, df
 
 # finds number of principle components and saves cumulative explained variance
 def get_pc(data, lookup, solver, save_dir):
@@ -70,7 +73,7 @@ def get_pc(data, lookup, solver, save_dir):
     return lookup, num_components
 
 # transforms the data using principle component analysis (PCA) and plotting PCA data
-def kmeans(data, lookup, table_name, solver, n_comp, k_range, n_iter, n_tol, save_dir):
+def kmeans(data, lookup, solver, n_comp, k_range, n_iter, n_tol, save_dir):
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     shape = data.shape
@@ -83,8 +86,8 @@ def kmeans(data, lookup, table_name, solver, n_comp, k_range, n_iter, n_tol, sav
     centroid_list, distortions, predictions = [], [], []
     silhouettes = []
     inertia = []
-   
     choosing_k = pd.DataFrame()
+
     start_t = time.time()
     for k in k_range:
         km = KMeans(
@@ -110,9 +113,9 @@ def kmeans(data, lookup, table_name, solver, n_comp, k_range, n_iter, n_tol, sav
 
         centroids_x = [0] * len(data_pca)
         centroids_y = [0] * len(data_pca)
-        for a, b in zip(range(len(centroids[:,0])) , range(len(centroids[:,1]))):
-            centroids_x = centroids[:,0][a]
-            centroids_y = centroids[:,1][b]
+        for a, b, i in zip(centroids[:,0] , centroids[:,1], range(len(centroids[:,0]))):
+            centroids_x[i] = a
+            centroids_y[i] = b
 
         lookup["k{}, x".format(k)] = data_pca[:, 0]
         lookup["k{}, y".format(k)] = data_pca[:, 1]
@@ -130,37 +133,35 @@ def kmeans(data, lookup, table_name, solver, n_comp, k_range, n_iter, n_tol, sav
     choosing_k["inertia"] = inertia
     choosing_k["silhouettes"] = silhouettes
 
-    lookup.to_csv("{}".format(table_name))
+    lookup.to_csv("{}kmeans_results.csv".format(save_dir))
     choosing_k.to_csv("{}k_value_selection.csv".format(save_dir))
-
-    return predictions
     
 # =============================================================================
 # MAIN                    
 # =============================================================================
 
 # list of concentrations, change according to temperature folders, electric field folders, etc.
-conc = "0.15"
-
+concentrations = ["0.05", "0.15", "0.25"]
 start_t = time.time()
+for conc in concentrations:
+    swag = "data_tables/BZT_C-{}_10K-450K_data.csv".format(conc)
+    n_iter = 1600 # the maximum iterations per a single run of the algorithm
+    n_tol = 1e-10 # tolerance limit (error) 
+    k_range = [2, 3, 4, 5, 6, 7, 8, 9, 10] # k = 2 to k = 10
+    solver = "full" # solver can be "full", "randomized", "auto", or "arpack"
 
-swag = "data_tables/BZT_C-{}_10K-450K_data.csv".format(conc)
-yeehaw = "data_tables/BZT_C-{}_10K-450K_lookup.csv".format(conc)
-n_iter = 1600 # the maximum iterations per a single run of the algorithm
-n_tol = 1e-10 # tolerance limit (error) 
-k_range = [2, 3, 4, 5, 6, 7, 8, 10] # k = 2 to k = 10
-solver = "full" # solver can be "full", "randomized", "auto", or "arpack"
+    save = os.getcwd() + '/' + conc + '/' #change depending on temp range
+    if not os.path.exists(save):
+        os.makedirs(save)
 
-save = os.getcwd() + '/' + conc + '/' #change depending on temp range
-if not os.path.exists(save):
-  os.makedirs(save)
+    weenie_hut_jr = read_file(swag)
+    lookup = weenie_hut_jr[0]
+    data = weenie_hut_jr[1]
 
-start_t = time.time()
-data = read_file(swag)
-lookup = read_file(yeehaw)
-
-pca_results = get_pc(data, lookup, solver, save)
-kmeans_data = kmeans(data, pca_results[0], yeehaw, solver, pca_results[1], k_range, n_iter, n_tol, save)
+    pca_results = get_pc(data, lookup, solver, save)
+    table_pca = pca_results[0]
+    n_comp = pca_results[1]
+    kmeans(data, table_pca, solver, n_comp, k_range, n_iter, n_tol, save)
 end_t = time.time()
 
 time_iter = end_t - start_t

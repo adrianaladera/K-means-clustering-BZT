@@ -15,8 +15,8 @@ def is_number(n):
         return False
     return True  
 
-concentrations = ["0.00"]
-root = "/Users/adrianaladera/Desktop/analysis/ML_BZT_doodoo/manuscript_figs_data/" #where the K-means-clustering-BZT directory is stored
+concentrations = ["0.15"] #optionally a list if there is more than one concentration
+root = "/Users/adrianaladera/Desktop/" #where the K-means-clustering-BZT directory is stored
 main_dir = "{}K-means-clustering-BZT/".format(root)
 plt.rcParams["axes.linewidth"] = 2.50
 
@@ -41,61 +41,35 @@ for conc in concentrations:
     plt.savefig("{}{}/PCA_plot.jpeg".format(main_dir, conc), dpi=600)
 
     ############################# DISTORTIONS #############################
-    fit1x,fit1y, fit2x, fit2y = [], [], [], []
-    fit15x, fit15y = [],[]
-    if conc != "0.25":
-        for s in range(5):
-            fit1x.append(k_values["k"][s])
-            fit1y.append(k_values["distortions"][s])
-        for s in range(5):
-            fit2x.append(k_values["k"][s+3])
-            fit2y.append(k_values["distortions"][s+3])
-    if conc == "0.15":
-        for s in range(3):
-            fit15x.append(k_values["k"][s+1])
-            fit15y.append(k_values["distortions"][s+1])
-    else:
-        for s in range(3):
-            fit1x.append(k_values["k"][s])
-            fit1y.append(k_values["distortions"][s])
-        for s in range(7):
-            fit2x.append(k_values["k"][s+1])
-            fit2y.append(k_values["distortions"][s+1])
+    # average distance of each point to their respective cluster center
+    plt.clf()
+    fit1x, fit1y = [], []
+    # max(k) - elbow + 1 = range
+    # e.g. if elbow is at k = 4 and max(k) = 10, range = 7
+    for s in range(7):
+        fit1x.append(k_values["k"][s+2]) # s+2 = s+(max(k) - range + 1)
+        fit1y.append(k_values["distortions"][s+2])
 
     plt.plot(k_values["k"], k_values["distortions"], color='#FF1493', marker='o')
-    coef = np.polyfit(fit2x,fit2y,1)
+    coef = np.polyfit(fit1x,fit1y,1)
     poly1d_fn = np.poly1d(coef) 
-    plt.plot(fit2x, poly1d_fn(fit2x), '--k')
-    if conc == "0.15":
-        coef = np.polyfit(fit15x,fit15y,1)
-        poly1d_fn = np.poly1d(coef) 
-        plt.plot(fit15x, poly1d_fn(fit15x), '--k')
+    plt.plot(fit1x, poly1d_fn(fit1x), '--k')
     font = foom.FontProperties(family='Times New Roman', size=14)
     plt.title("x = {}".format(conc))
     plt.savefig("{}{}/distortions_elbow_X-{}.jpeg".format(main_dir, conc, conc), dpi=600)
 
     ############################# INERTIA #############################    
     plt.clf()
-    fit1x,fit1y, fit2x, fit2y = [], [], [], []
-    if conc == "0.05":
-        for s in range(5):
-            fit1x.append(k_values["k"][s])
-            fit1y.append(k_values["inertia"][s])
-        for s in range(5):
-            fit2x.append(k_values["k"][s+3])
-            fit2y.append(k_values["inertia"][s+3])
-    else:
-        for s in range(4):
-            fit1x.append(k_values["k"][s])
-            fit1y.append(k_values["inertia"][s])
-        for s in range(6):
-            fit2x.append(k_values["k"][s+2])
-            fit2y.append(k_values["inertia"][s+2])
+    fit1x,fit1y = [], []
+    # same values for computing range and s+2 as shown in distortions section
+    for s in range(7):
+        fit1x.append(k_values["k"][s+2])
+        fit1y.append(k_values["inertia"][s+2])
                 
     plt.plot(k_values["k"], k_values["inertia"], color='#8A2BE2', marker='o')
-    coef = np.polyfit(fit2x,fit2y,1)
+    coef = np.polyfit(fit1x,fit1y,1)
     poly1d_fn = np.poly1d(coef) 
-    plt.plot(fit2x, poly1d_fn(fit2x), '--k')
+    plt.plot(fit1x, poly1d_fn(fit1x), '--k')
     font = foom.FontProperties(family='Times New Roman', size=14)
     plt.title("x = {}".format(conc))
     plt.savefig("{}{}/inertia_elbow_X-{}.jpeg".format(main_dir, conc, conc), dpi=600)
@@ -107,7 +81,6 @@ for conc in concentrations:
         ax_count = 0
         x_nested = []
         y_nested = []
-                
         clusters = {}
                 
         # separating the list into a dictionary where keys are cluster labels
@@ -131,6 +104,9 @@ for conc in concentrations:
                 my_ass.append(clusters[weenie][i])
             my_ass.sort(key = lambda i:i[0], reverse = False) #sorting by temperature
     
+        # k-means gives arbitrary labels to each cluster. clust_keys is a dictionary that maps
+        # original cluster label to a corresponding new integer label such that successive labels
+        # are organized in descending order
         clust_keys = {}
         start_key = k - 1
         for i in range(len(my_ass)):
@@ -159,6 +135,9 @@ for conc in concentrations:
         centy = centy[centy != 0]      
 
         data = {}
+        # k-means gives arbitrary labels to each cluster. clust_keys is a dictionary that maps
+        # original cluster label to a corresponding new integer label such that successive labels
+        # are organized in descending order
         clust_keys = {}
         start_key = k - 1
         cunt = 0

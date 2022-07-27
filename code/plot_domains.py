@@ -12,11 +12,14 @@ import os
 import pandas as pd
 import time
 
-root = "/Users/adrianaladera/Desktop/analysis/ML_BZT_doodoo/manuscript_figs_data/" #where the K-means-clustering-BZT directory is stored
+# where the K-means-clustering-BZT directory is stored (not including the "-means-clustering-BZT/" directory)
+root = "/Users/adrianaladera/Desktop/" 
 main_dir = "{}K-means-clustering-BZT/".format(root)
-dipole_dir = "/Users/adrianaladera/Desktop/analysis/ML_BZT_doodoo/original_files/"
+dipole_dir = "{}source_files/"
  
-valid_k = { "0.00": [4]} 
+# dictionary of concentrations and their corresponding k values that you want to visualize 
+# k-range [2, 10]
+valid_k = { "0.15": [3, 4, 5]} 
 
 start = time.time()
 for conc in valid_k.keys():
@@ -33,7 +36,6 @@ for conc in valid_k.keys():
             new_key = k - 1
             c_range = range(k)
 
-            
             for c in c_range:
                 pelota = []
                 for el_pepe in range(len(results_table["k{}, pred".format(k)])):
@@ -45,13 +47,14 @@ for conc in valid_k.keys():
                         pelota.append([results_table["temperature"][el_pepe], results_table["cf_pattern"][el_pepe]])
                 clusters["c{}".format(c)] = pelota
             
+            # find median temperature and cf pattern of each cluster
             for clust, key in zip(clusters, clusters.keys()):
                 pelota.sort(key=lambda x:x[0])
                 median_list = clusters[clust]
                 median_list.sort(key=lambda x:x[0])
                 med_key = median_list[len(median_list)//2]
                 
-                print(k, med_key[0], med_key[1])
+                print(k, med_key[0], med_key[1]) # k value, temperature, pattern
 
                 fig = plt.figure(figsize=(5,4))
                 ax = fig.gca(projection='3d')
