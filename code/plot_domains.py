@@ -1,10 +1,11 @@
 # /Users/adrianaladera/Desktop/analysis/ML_BZT_doodoo/manuscript_figs_data/plot_med_clusters
 # ===============================================================================
-# by Adriana Ladera                                                             #
-#                                                                               #
-# Plots a supercell according to the 8 permutations of x,y,z components given   #
-# that the components are either positive or negative. If one of the components #
-# has a 0 value, then the arrow will be colored black.                          #
+# by Adriana Ladera                                                             
+#                                                                               
+# Plots a supercell according to the 8 permutations of x,y,z components given   
+# that the components are either positive or negative. If one of the components 
+# has a 0 value, then the arrow will be colored black. Gives the supercell of   
+# the median temperature of each cluster for a given K.           
 # ===============================================================================
 
 import matplotlib.pyplot as plt
@@ -13,11 +14,12 @@ import pandas as pd
 import time
 
 # where the K-means-clustering-BZT directory is stored (not including the "-means-clustering-BZT/" directory)
-root = "/Users/adrianaladera/Desktop/" 
+root = "<YOUR DIRECTORY HERE>" 
 main_dir = "{}K-means-clustering-BZT/".format(root)
 dipole_dir = "{}source_files/"
  
 # dictionary of concentrations and their corresponding k values that you want to visualize 
+# normally determined by the elbow plots, in which the optimal K is visualized as well as K+-1
 # k-range [2, 10]
 valid_k = { "0.15": [3, 4, 5]} 
 

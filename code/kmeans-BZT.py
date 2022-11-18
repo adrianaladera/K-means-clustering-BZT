@@ -10,7 +10,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn import metrics
 from scipy.spatial.distance import cdist
 from matplotlib import pyplot as plt
-from sklearn.metrics import silhouette_score
 import matplotlib.cm as cm
 import time
 
@@ -25,6 +24,8 @@ import time
 #                 features for. It accepts data as an M x N array, where M is 
 #                 the number of samples and N is the dimension, i.e. variables
 #                 of each sample.
+#                 Should be in the same directory as 'K-means-clustering-BZT'
+#                 folder.
 # K-MEANS CLUSTERING DOCUMENTATION:
 # https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
 # PRINCIPLE COMPONENT ANALYSIS DOCUMENTATION:
@@ -36,8 +37,6 @@ import time
 # =============================================================================
 
 def read_file(filename):
-    # with open(filename, newline = '') as file:
-    #     df = csv.reader(file, quoting = csv.QUOTE_NONNUMERIC)
     df = pd.read_csv(filename, index_col=0)
     lookup = pd.DataFrame()
     lookup["temperature"] = df["temperature"]
@@ -84,7 +83,6 @@ def kmeans(data, lookup, solver, n_comp, k_range, n_iter, n_tol, save_dir):
 
     # making predictions with k-means
     centroid_list, distortions, predictions = [], [], []
-    silhouettes = []
     inertia = []
     choosing_k = pd.DataFrame()
 
@@ -105,20 +103,21 @@ def kmeans(data, lookup, solver, n_comp, k_range, n_iter, n_tol, save_dir):
         centroid_list.append(centroids)
         
         labels = km.labels_
-        silhouettes.append(silhouette_score(data_pca, labels, metric = 'euclidean'))
 
         inertia.append(km.inertia_)
 
         distortions.append(sum(np.min(cdist(data_pca, km.cluster_centers_, 'euclidean'), axis = 1)) / data_pca.shape[0])
 
-        centroids_x = [0] * len(data_pca)
+        centroids_x = [0] * len(data_pca) #store PC1 and PC2 of centroids to create cluster plots
         centroids_y = [0] * len(data_pca)
         for a, b, i in zip(centroids[:,0] , centroids[:,1], range(len(centroids[:,0]))):
             centroids_x[i] = a
             centroids_y[i] = b
 
-        lookup["k{}, x".format(k)] = data_pca[:, 0]
+        # adding data to CSV file for different values of K
+        lookup["k{}, x".format(k)] = data_pca[:, 0] # PC1 and PC2 for all points in dataset
         lookup["k{}, y".format(k)] = data_pca[:, 1]
+        lookup["k{}, 300".format(k)] = data_pca[:, 300]
         lookup["k{}, centx".format(k)] = centroids_x
         lookup["k{}, centy".format(k)] = centroids_y
 
@@ -128,10 +127,10 @@ def kmeans(data, lookup, solver, n_comp, k_range, n_iter, n_tol, save_dir):
         secs = time_k % 60
         print("\nTime elapsed for k = {}:".format(k), minnies, "min, {:.5f} sec\n".format(k, secs))
 
+    # adding data for elbow plots to CSV file
     choosing_k["k"] = k_range
     choosing_k["distortions"] = distortions
     choosing_k["inertia"] = inertia
-    choosing_k["silhouettes"] = silhouettes
 
     lookup.to_csv("{}kmeans_results.csv".format(save_dir))
     choosing_k.to_csv("{}k_value_selection.csv".format(save_dir))
@@ -141,17 +140,17 @@ def kmeans(data, lookup, solver, n_comp, k_range, n_iter, n_tol, save_dir):
 # =============================================================================
 
 # list of concentrations, change according to temperature folders, electric field folders, etc.
-concentrations = ["0.05", "0.15", "0.25"]
+concentrations = ["0.15"]
 start_t = time.time()
 for conc in concentrations:
     swag = "data_tables/BZT_C-{}_10K-450K_data.csv".format(conc)
     n_iter = 1600 # the maximum iterations per a single run of the algorithm
     n_tol = 1e-10 # tolerance limit (error) 
-    k_range = [2, 3, 4, 5, 6, 7, 8, 9, 10] # k = 2 to k = 10
+    k_range = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] # k = 1 to k = 10
     solver = "full" # solver can be "full", "randomized", "auto", or "arpack"
 
     save = os.getcwd() + '/' + conc + '/' #change depending on temp range
-    if not os.path.exists(save):
+    if not os.path.exists(save): # creating different directories for
         os.makedirs(save)
 
     weenie_hut_jr = read_file(swag)

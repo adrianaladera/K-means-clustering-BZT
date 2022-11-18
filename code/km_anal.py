@@ -16,15 +16,20 @@ def is_number(n):
     return True  
 
 concentrations = ["0.15"] #optionally a list if there is more than one concentration
-root = "/Users/adrianaladera/Desktop/" #where the K-means-clustering-BZT directory is stored
+root = "<YOUR DIRECTORY HERE>" #where the K-means-clustering-BZT directory is stored
 main_dir = "{}K-means-clustering-BZT/".format(root)
+save = "{}/results/".format(main_dir)
 plt.rcParams["axes.linewidth"] = 2.50
+
+if not os.path.exists(save): # creating different directories for
+        os.makedirs(save)
 
 for conc in concentrations:
     data_table = pd.read_csv("{}{}/kmeans_results.csv".format(main_dir, conc))
     k_values = pd.read_csv("{}{}/k_value_selection.csv".format(main_dir, conc))
 
     ############################### PRINCIPLE COMPONENTS ###############################  
+    # cumulative sum of the percent of variation explained per number of principle components
     fig, axs = plt.subplots(1)
 
     plt.tick_params(axis='both', which='both', labelsize=14) #tick labels
@@ -38,7 +43,7 @@ for conc in concentrations:
     cum_sum = data_table["PCA-y"]
 
     plt.plot(components, cum_sum, color="green", linestyle="solid", linewidth=3)
-    plt.savefig("{}{}/PCA_plot.jpeg".format(main_dir, conc), dpi=600)
+    plt.savefig("{}{}/PCA_plot.jpeg".format(save, conc), dpi=600)
 
     ############################# DISTORTIONS #############################
     # average distance of each point to their respective cluster center
@@ -56,9 +61,10 @@ for conc in concentrations:
     plt.plot(fit1x, poly1d_fn(fit1x), '--k')
     font = foom.FontProperties(family='Times New Roman', size=14)
     plt.title("x = {}".format(conc))
-    plt.savefig("{}{}/distortions_elbow_X-{}.jpeg".format(main_dir, conc, conc), dpi=600)
+    plt.savefig("{}{}/distortions_elbow_X-{}.jpeg".format(save, conc, conc), dpi=600)
 
     ############################# INERTIA #############################    
+    # sum of the distance of each point to their respective cluster center
     plt.clf()
     fit1x,fit1y = [], []
     # same values for computing range and s+2 as shown in distortions section
@@ -72,9 +78,10 @@ for conc in concentrations:
     plt.plot(fit1x, poly1d_fn(fit1x), '--k')
     font = foom.FontProperties(family='Times New Roman', size=14)
     plt.title("x = {}".format(conc))
-    plt.savefig("{}{}/inertia_elbow_X-{}.jpeg".format(main_dir, conc, conc), dpi=600)
+    plt.savefig("{}{}/inertia_elbow_X-{}.jpeg".format(save, conc, conc), dpi=600)
         
-    # ############################# PHASES(T) ############################# 
+    # ############################# PHASES(T) #############################
+    # plots the cluster number (i.e. phase) as a function of temperature
     for k in range (2, 10):
         plt.clf()
         plt.tick_params(axis='both', which='both', labelsize=14) #tick labels
@@ -121,9 +128,11 @@ for conc in concentrations:
         plt.plot(x_nested, y_nested, color="#0000FF", marker='o',linewidth=2)
         font = foom.FontProperties(family='Times New Roman', size=14)
         plt.title("x = {}, k = {}".format(conc, k))
-        plt.savefig("{}{}/predictions_X-{}_k-{}.jpeg".format(main_dir, conc, conc, k), dpi=600)
+        plt.savefig("{}{}/predictions_X-{}_k-{}.jpeg".format(save, conc, conc, k), dpi=600)
         
         ############################# CLUSTER PLOTS ############################# 
+        # plots the first two principle components of each point (i.e. each pattern),
+        # color-coded by cluster
         plt.clf()
         color_list = {0:'#CC0000', 1:'#FF7F50', 2:'#FFD700', 3:'#008000', 4:'#2ACAEA',
                         5: "#0000FF", 6: "#8A2BE2", 7: "#FF1493", 8: 'grey', 9:'brown'}
@@ -161,4 +170,4 @@ for conc in concentrations:
         font = foom.FontProperties(family='Times New Roman', size=10)
         plt.legend(loc="upper left", prop = font)
         plt.title("x = {}, k = {}".format(conc, k))  
-        plt.savefig("{}{}/cluster-plots_X-{}_k-{}.jpeg".format(main_dir, conc, conc, k), dpi=600)
+        plt.savefig("{}{}/cluster-plots_X-{}_k-{}.jpeg".format(save, conc, conc, k), dpi=600)
