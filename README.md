@@ -1,5 +1,5 @@
 # K-means-clustering-BZT
-Public access repository for scientists and curious people alike! Use k-means clustering to determine the phase transitions in barium zirconate supercells with 5% Zr concentration (Ba(Ti0.95,Zr,0.05). This source code accompanies the paper, \textit{"Machine learning reveals memory of the parent phases in ferroelectric relaxors $Ba(Ti_{1-x},Zr_x)O_3$}.  <come back and check the concentrations later>
+Public access repository for scientists and curious people alike! Use k-means clustering to determine the phase transitions in barium zirconate supercells with 5% Zr concentration (Ba(Ti0.95,Zr,0.05). This source code accompanies the paper, *"Machine learning reveals memory of the parent phases in ferroelectric relaxors $Ba(Ti_{1-x},Zr_x)O_3$"*.  <come back and check the concentrations later>
   
   - dependencies: Python >= 3.0, Anaconda, Scikit Learn = 1.1.3
   
