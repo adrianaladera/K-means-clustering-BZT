@@ -12,7 +12,7 @@ destination = "<YOUR DESTINATION DIRECTORY HERE>"
 
 
 
-alloy_list = ["0.20"] # optionally a list of concentrations, must be a string
+alloy_list = ["0.05"] # optionally a list of concentrations, must be a string
 for alloy in alloy_list:
     temp = 10
     while temp <= 450:
